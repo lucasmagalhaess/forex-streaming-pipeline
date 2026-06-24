@@ -1,0 +1,6 @@
+﻿{
+  "sparkSubmit": {
+    "entryPoint": "s3://forex-streaming-datalake-dev/scripts/transform.py",
+    "sparkSubmitParameters": "--conf spark.driver.cores=1 --conf spark.driver.memory=2g --conf spark.executor.cores=1 --conf spark.executor.memory=2g --conf spark.executor.instances=1"
+  }
+}
