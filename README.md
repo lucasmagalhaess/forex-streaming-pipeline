@@ -6,17 +6,7 @@ Pipeline de dados em tempo real para monitoramento de cotações das 10 principa
 
 ## 🏗️ Arquitetura
 
-\\\
-EventBridge (1h) → Lambda → S3 Bronze (JSON)
-                              ↓
-                         EMR Serverless (PySpark)
-                              ↓
-                    S3 Silver (Parquet limpo)
-                              ↓
-              ┌───────────────────────────────┐
-              ↓                               ↓
-   S3 Gold BI (Star Schema)     S3 Gold ML (Feature Store)
-\\\
+EventBridge (1h) → Lambda → S3 Bronze (JSON) → EMR Serverless (PySpark) → S3 Silver → Gold BI e Gold ML
 
 ---
 
@@ -54,6 +44,7 @@ USD, EUR, JPY, GBP, AUD, CAD, CHF, CNY, HKD, SEK — todas vs BRL
 ## ✅ Qualidade de Dados
 
 Validações implementadas na extração:
+
 - Volume mínimo de 10 moedas por execução
 - Cotações inválidas (zero ou nulas)
 - Timestamps vazios
@@ -64,32 +55,26 @@ Validações implementadas na extração:
 ## 🚀 CI/CD
 
 A cada push na pasta pipeline/, o GitHub Actions:
+
 1. Roda os 8 testes automatizados (pytest)
-2. Se passarem → deploy automático do script para o S3
+2. Se passarem, faz o deploy automático do script para o S3
 
 ---
 
 ## 📁 Estrutura do Projeto
 
-\\\
-forex-streaming-pipeline/
-├── pipeline/
-│   ├── extract/
-│   │   ├── extract.py
-│   │   └── test_extract.py
-│   └── transform/
-│       └── transform.py
-├── infra/
-│   ├── main.tf
-│   ├── variables.tf
-│   └── outputs.tf
-└── .github/
-    └── workflows/
-        └── deploy.yml
-\\\
+pipeline/extract/extract.py — Lambda de extração
+
+pipeline/extract/test_extract.py — 8 testes automatizados
+
+pipeline/transform/transform.py — PySpark Silver + Gold BI + Gold ML
+
+infra/main.tf — Recursos AWS via Terraform
+
+.github/workflows/deploy.yml — CI/CD GitHub Actions
 
 ---
 
 ## 📊 Fonte dos Dados
 
-[ExchangeRate-API](https://www.exchangerate-api.com/) — atualização a cada hora
+ExchangeRate-API — atualização a cada hora
