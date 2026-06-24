@@ -1,0 +1,10 @@
+﻿# Terraform
+infra/.terraform/
+infra/terraform.tfstate
+infra/terraform.tfstate.backup
+
+# Python cache
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+.pytest_cache/
