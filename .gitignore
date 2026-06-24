@@ -8,3 +8,6 @@ infra/terraform.tfstate.backup
 **/*.pyc
 **/*.pyo
 .pytest_cache/
+
+lambda_package/
+infra/lambda_extract.zip
