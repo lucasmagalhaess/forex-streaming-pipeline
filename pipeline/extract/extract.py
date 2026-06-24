@@ -67,3 +67,30 @@ def validar_registros(registros):
 
     if duplicadas:
         raise ValueError(f"Moedas duplicadas detectadas: {duplicadas}")
+    
+
+def salvar_bronze(registros):
+    now = datetime.now(timezone.utc)
+    today = now.strftime("%Y-%m-%d")
+    timestamp = now.strftime("%Y-%m-%dT%H-%M-%S")
+
+    payload = {
+        "extraction_date": today,
+        "extraction_timestamp": timestamp,
+        "total_registros": len(registros),
+        "registros": registros
+    }
+
+    s3 = boto3.client("s3")
+    bucket = "forex-streaming-datalake-dev"
+    key = f"bronze/forex/data={today}/cotacoes_{timestamp}.json"
+
+    s3.put_object(
+        Bucket=bucket,
+        Key=key,
+        Body=json.dumps(payload, ensure_ascii=False, indent=2),
+        ContentType="application/json"
+    )
+
+    print(f"✅ Bronze salvo: s3://{bucket}/{key}")
+    return key
