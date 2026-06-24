@@ -142,3 +142,49 @@ resource "aws_iam_role_policy" "emr_policy" {
     }]
   })
 }
+# ── Lambda Function — Extração ────────────────────────────────────────────────
+resource "aws_lambda_function" "extract" {
+  function_name = "${var.project_name}-extract"
+  role          = aws_iam_role.lambda_role.arn
+  handler       = "extract.extract"
+  runtime       = "python3.11"
+  timeout       = 60
+  filename      = "lambda_extract.zip"
+
+  environment {
+    variables = {
+      SECRET_NAME = "forex-pipeline/api-key"
+      BUCKET_NAME = aws_s3_bucket.datalake.bucket
+    }
+  }
+
+  tags = {
+    Project     = var.project_name
+    Environment = var.environment
+  }
+}
+
+# ── EventBridge — Agendamento (a cada 1 hora) ─────────────────────────────────
+resource "aws_cloudwatch_event_rule" "hourly" {
+  name                = "${var.project_name}-hourly"
+  schedule_expression = "rate(1 hour)"
+
+  tags = {
+    Project     = var.project_name
+    Environment = var.environment
+  }
+}
+
+resource "aws_cloudwatch_event_target" "lambda" {
+  rule      = aws_cloudwatch_event_rule.hourly.name
+  target_id = "ExtractLambda"
+  arn       = aws_lambda_function.extract.arn
+}
+
+resource "aws_lambda_permission" "eventbridge" {
+  statement_id  = "AllowEventBridge"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.extract.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.hourly.arn
+}
